@@ -1,5 +1,7 @@
+# Build runtime image
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
+LABEL version="1.0" maintainer="Conrado"
+WORKDIR /app
+COPY ./dist .
 
-COPY TodoApi/bin/release/netcoreapp3.1/publish/ App/
-WORKDIR /App
 ENTRYPOINT ["dotnet", "TodoApi.dll"]
