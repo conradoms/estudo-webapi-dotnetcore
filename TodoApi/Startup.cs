@@ -21,7 +21,7 @@ namespace TodoApi
         public void ConfigureServices(IServiceCollection services)
         {
             // services.AddDbContext<TodoContext>(opt =>
-            //     opt.UseInMemoryDatabase("TodoList"));
+            //     opt.UseInMemoryDatabase("TodoList")); // Código para usar o DB na memória
             services.AddControllers();
         }
 
