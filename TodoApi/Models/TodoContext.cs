@@ -8,7 +8,7 @@ namespace TodoApi.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=localhost;Database=todoapi_db;User Id=sa;Password=Odarnoc@123456;");
+            optionsBuilder.UseSqlServer(@"Server=192.168.0.11,1433;Database=todoapi_db;User Id=sa;Password=Odarnoc@123456;");
         }
     }
 }
