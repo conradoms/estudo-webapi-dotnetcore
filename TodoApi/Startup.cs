@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Models;
+using TodoApi.Services;
+using TodoApi.Services.Interfaces;
 
 namespace TodoApi
 {
@@ -23,6 +23,8 @@ namespace TodoApi
             // services.AddDbContext<TodoContext>(opt =>
             //     opt.UseInMemoryDatabase("TodoList")); // Código para usar o DB na memória
             services.AddControllers();
+
+            services.AddScoped<ITodoService, TodoService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

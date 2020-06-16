@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 using TodoApi.DTOs;
+using TodoApi.Services.Interfaces;
 
 namespace TodoApi.Controllers
 {
@@ -14,77 +15,50 @@ namespace TodoApi.Controllers
     [ApiController]
     public class TodoItemsController : ControllerBase
     {
-        public TodoItemsController()
+        private readonly ITodoService _todoService;
+        public TodoItemsController(ITodoService todoService)
         {
+            _todoService = todoService;
         }
 
         // GET: api/TodoItems
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TodoItemDTO>>> GetTodoItems()
+        public async Task<ActionResult<IEnumerable<TodoItemDTO>>> Get()
         {
-            using (var db = new TodoContext())
-            {
-                return await db.TodoItems
-                .Select(x => ItemToDTO(x))
-                .ToListAsync();
-            }
+            return await _todoService.FindAll();
         }
 
         // GET: api/TodoItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItemDTO>> GetTodoItem(int id)
+        public async Task<ActionResult<TodoItemDTO>> Get(int id)
         {
-            using (var db = new TodoContext())
+            var todoItem = await _todoService.Find(id);
+
+            if (todoItem == null)
             {
-                var todoItem = await db.TodoItems.FindAsync(id);
-
-                if (todoItem == null)
-                {
-                    return NotFound();
-                }
-
-                return ItemToDTO(todoItem);
+                return NotFound();
             }
+
+            return todoItem;
         }
 
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTodoItem(int id, TodoItemDTO todoItemDTO)
+        public async Task<IActionResult> Put(int id, TodoItemDTO todoItemDTO)
         {
             if (id != todoItemDTO.Id)
             {
                 return BadRequest();
             }
 
-            using (var db = new TodoContext())
+            if (!await _todoService.Exists(id))
             {
-                var todoItem = await db.TodoItems.FindAsync(id);
-                if (todoItem == null)
-                {
-                    return NotFound();
-                }
-
-                todoItem.Name = todoItemDTO.Name;
-                todoItem.IsComplete = todoItemDTO.IsComplete;
-
-                try
-                {
-                    await db.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TodoItemExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return NotFound();
             }
+
+            await _todoService.Update(todoItemDTO);
 
             return NoContent();
         }
@@ -93,58 +67,25 @@ namespace TodoApi.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemDTO todoItemDTO)
+        public async Task<ActionResult<TodoItemDTO>> Post(TodoItemDTO todoItemDTO)
         {
-            var todoItem = new TodoItem
-            {
-                IsComplete = todoItemDTO.IsComplete,
-                Name = todoItemDTO.Name
-            };
+            var idCreated = await _todoService.Create(todoItemDTO);
 
-            using (var db = new TodoContext())
-            {
-                db.TodoItems.Add(todoItem);
-                await db.SaveChangesAsync();
+            todoItemDTO.Id = idCreated;
 
-                return CreatedAtAction(nameof(GetTodoItem),
-                 new { id = todoItem.Id },
-                 todoItemDTO);
-            }
+            return todoItemDTO;
         }
 
         // DELETE: api/TodoItems/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<TodoItem>> DeleteTodoItem(int id)
+        public async Task<ActionResult<TodoItemDTO>> Delete(int id)
         {
-            using (var db = new TodoContext())
+            if (!await _todoService.Exists(id))
             {
-                var todoItem = await db.TodoItems.FindAsync(id);
-                if (todoItem == null)
-                {
-                    return NotFound();
-                }
-
-                db.TodoItems.Remove(todoItem);
-                await db.SaveChangesAsync();
-
-                return todoItem;
+                return NotFound();
             }
-        }
 
-        private bool TodoItemExists(int id)
-        {
-            using (var db = new TodoContext())
-            {
-                return db.TodoItems.Any(e => e.Id == id);
-            }
+            return await _todoService.Delete(id);
         }
-
-        private static TodoItemDTO ItemToDTO(TodoItem todoItem) =>
-        new TodoItemDTO
-        {
-            Id = todoItem.Id,
-            Name = todoItem.Name,
-            IsComplete = todoItem.IsComplete
-        };
     }
 }
