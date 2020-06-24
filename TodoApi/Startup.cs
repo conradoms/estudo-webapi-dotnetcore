@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TodoApi.Services;
 using TodoApi.Services.Interfaces;
+using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.OpenApi.Models;
 
 namespace TodoApi
 {
@@ -24,6 +26,16 @@ namespace TodoApi
             //     opt.UseInMemoryDatabase("TodoList")); // Código para usar o DB na memória
             services.AddControllers();
 
+            services.AddSwaggerGen(c => {
+
+                c.SwaggerDoc("v1",
+                    new OpenApiInfo
+                    {
+                        Title = "Todo List",
+                        Version = "v1"
+                    });
+            });
+
             services.AddScoped<ITodoService, TodoService>();
         }
 
@@ -34,6 +46,13 @@ namespace TodoApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("v1/swagger.json", "TodoApi");
+            });
 
             app.UseHttpsRedirection();
 
