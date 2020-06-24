@@ -1,10 +1,23 @@
 version: "3.7"
 services:
-    sql-server-db:
+    db:
         container_name: sql-server-db
         image: mcr.microsoft.com/mssql/server:2019-latest
         ports:
           - "1433:1433"
+        volumes: 
+          - C:\Docker\MSSQL\data:/var/opt/mssql/data
+          - C:\Docker\MSSQL\log:/var/opt/mssql/log
+          - C:\Docker\MSSQL\backup:/var/opt/mssql/backup
         environment: 
             SA_PASSWORD: "Odarnoc@123456"
             ACCEPT_EULA: "Y"
+    api:
+      build: "."
+      container_name: api-container
+      restart: always
+      ports:
+        - "3030:5000"
+      depends_on: 
+        - db
+        
